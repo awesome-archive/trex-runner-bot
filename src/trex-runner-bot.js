@@ -1,15 +1,29 @@
 function TrexRunnerBot() {
-  var upKeyArgs = { keyCode: 38 };
-  var downKeyArgs = { keyCode: 40, preventDefault: function () {} };
+
+  const makeKeyArgs = (keyCode) => {
+    const preventDefault = () => void 0;
+    return {keyCode, preventDefault};
+  };
+
+  const upKeyArgs = makeKeyArgs(38);
+  const downKeyArgs = makeKeyArgs(40);
+  const startArgs = makeKeyArgs(32);
+
+  if (!Runner().playing) {
+    Runner().onKeyDown(startArgs);
+    setTimeout(() => {
+      Runner().onKeyUp(startArgs);
+    }, 500);
+  }
 
   function conquerTheGame() {
-    if (!Runner || !Runner().horizon.obstacles[0])
-      return;
+    if (!Runner || !Runner().horizon.obstacles[0]) return;
 
-    var obstacle = Runner().horizon.obstacles[0];
+    const obstacle = Runner().horizon.obstacles[0];
 
-    if (needsToTackle(obstacle) && closeEnoughToTackle(obstacle))
-      tackle(obstacle);
+    if (obstacle.typeConfig && obstacle.typeConfig.type === 'SNACK') return;
+
+    if (needsToTackle(obstacle) && closeEnoughToTackle(obstacle)) tackle(obstacle);
   }
 
   function needsToTackle(obstacle) {
@@ -21,20 +35,21 @@ function TrexRunnerBot() {
   }
 
   function tackle(obstacle) {
-    if (isDuckable(obstacle))
+    if (isDuckable(obstacle)) {
       duck();
-    else
+    } else {
       jumpOver(obstacle);
+    }
   }
 
   function isDuckable(obstacle) {
-    return obstacle.yPos === 75;
+    return obstacle.yPos === 50;
   }
 
   function duck() {
     Runner().onKeyDown(downKeyArgs);
 
-    setTimeout(function () {
+    setTimeout(() => {
       Runner().onKeyUp(downKeyArgs);
     }, 500);
   }
@@ -47,7 +62,7 @@ function TrexRunnerBot() {
   }
 
   function isNextObstacleCloseTo(currentObstacle) {
-    var nextObstacle = Runner().horizon.obstacles[1];
+    const nextObstacle = Runner().horizon.obstacles[1];
 
     return nextObstacle && nextObstacle.xPos - currentObstacle.xPos <= Runner().currentSpeed * 42;
   }
@@ -57,8 +72,8 @@ function TrexRunnerBot() {
     Runner().onKeyUp(upKeyArgs);
   }
 
-  return { conquerTheGame: conquerTheGame };
+  return {conquerTheGame: conquerTheGame};
 }
 
-var bot = TrexRunnerBot();
-var botInterval = setInterval(bot.conquerTheGame, 2);
+let bot = TrexRunnerBot();
+let botInterval = setInterval(bot.conquerTheGame, 2);
